@@ -1,0 +1,89 @@
+# Code Overview - Parker Nonograms Project
+
+This file summarizes each section of code in the project using basic English coding terms.
+
+## config.py
+This file holds all the settings and numbers that control how the game looks and works. It includes:
+- Window size (width and height)
+- How fast the game runs (frames per second)
+- Grid size (how many cells in the puzzle)
+- Size of each cell on screen
+- Space around things (margin)
+- Colors for background, grid lines, filled cells, empty cells, marked cells, and text
+- Font name for writing text
+
+All these are stored as simple variables that other parts of the program can use.
+
+## game.py
+This file brings together all the other parts to make the game work. It has a Game class that:
+- Creates a puzzle solution and clues when starting
+- Makes a grid for the player to fill
+- Sets up a renderer to draw everything on screen
+- Handles user input through an input handler
+- Has an update method that checks for player actions
+- Has a draw method that shows the current game state
+- Keeps track if the game is still running
+
+## generator.py
+This file creates the puzzles. It has functions to:
+- Make a random solution grid (filled and empty cells)
+- Turn a line of cells into clues (numbers showing groups of filled cells)
+- Calculate clues for all rows and columns from a solution
+
+## grid.py
+This file manages the puzzle grid that the player interacts with. It has:
+- A CellState class that defines what a cell can be (empty, filled, or marked)
+- A Grid class that stores:
+  - The correct solution
+  - The player's current guesses
+  - Methods to change cells (fill or mark them)
+  - A way to check if the puzzle is solved
+
+## input_handler.py
+This file deals with what the player does with the mouse and keyboard. It has:
+- An InputHandler class with a handle_event method that:
+  - Checks if the player wants to quit
+  - Detects mouse clicks and figures out which cell was clicked
+  - Tells the grid to fill or mark cells based on left or right clicks
+  - Returns whether the game should continue
+
+## main.py
+This is the starting point of the program. It:
+- Starts up the pygame library
+- Creates a window with the right size
+- Sets the window title
+- Makes a clock to control game speed
+- Creates a Game object
+- Runs a loop that updates and draws the game until it's done
+- Cleans up pygame when finished
+
+## renderer.py
+This file is supposed to handle drawing the game on screen using pygame, but currently contains a copy of grid.py code instead. When properly implemented, it should:
+- Calculate sizes for clue panels and grid positioning
+- Draw the background and clue numbers
+- Draw the grid cells with different colors
+- Show X marks for cells the player thinks are empty
+- Draw grid lines (thin and thick every 5 cells)
+- Display status text
+- Convert screen positions to grid positions
+- Use surface blitting for better performance by pre-drawing static parts
+
+## solver_rand.py
+This file contains a solver that tries to solve puzzles using random guessing with smart shortcuts. It has:
+- A RandomSolver class that:
+  - Takes row and column clues
+  - Has a timeout to avoid taking too long
+  - Starts with a blank grid
+  - Uses math rules to fill in cells that must be certain ways
+  - Tries random solutions for uncertain parts
+  - Checks if solutions match the clues
+  - Stops if it finds a solution or times out
+
+## solver_prolog.py (Not Yet Implemented)
+This file will use Prolog (a logic programming language) to solve puzzles. It should:
+- Convert puzzle clues into Prolog code
+- Run Prolog to find solutions
+- Check if there's exactly one solution
+- Have a timeout fallback
+- Use a library to keep Prolog running for hints during gameplay</content>
+<parameter name="filePath">/workspaces/Parker_Nonograms/general/overview.txt
