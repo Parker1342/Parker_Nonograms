@@ -26,7 +26,7 @@ File that imports all of the other files, and uses them to make a full game. Inc
 # main.py
 File that runs everything. Initializing, creates the window, creates the game, loops through checking for updates and drawing anything needed.
 
-# solver_rand.py (To Be Implemented)
+# solver_rand.py
 File that will be used to make the solver that uses random generation. Here is the structure for my solver:
 Start with blank ones, and use the size of the grid and the numbers in the clues, since between each number has to be 1 blank tile. This means if the (Sum of Clues) + (Number of Clues) - 1 = Row/Column length.
 This can give a baseline for any given graph.
