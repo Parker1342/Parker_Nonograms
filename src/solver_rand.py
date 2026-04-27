@@ -2,7 +2,8 @@
 
 import random
 import time
-from typing import List, Optional
+import sys
+from typing import Optional
 
 class RandomSolver:
     """
@@ -10,7 +11,7 @@ class RandomSolver:
     Based on nonogram solving techniques using overlapping segments and line deductions.
     """
 
-    def __init__(self, row_clues: List[List[int]], col_clues: List[List[int]], timeout: float = 30.0):
+    def __init__(self, row_clues, col_clues, timeout=30.0):
         """
         Initialize the solver with clues and timeout.
 
@@ -25,7 +26,7 @@ class RandomSolver:
         self.timeout = timeout
         self.start_time = None
 
-    def solve(self) -> Optional[List[List[int]]]:
+    def solve(self):
         """
         Attempt to solve the nonogram using random generation with optimizations.
 
@@ -33,6 +34,7 @@ class RandomSolver:
             Solved grid as list of lists, or None if unsolved/timeout
         """
         self.start_time = time.time()
+        sys.setrecursionlimit(2000)
 
         # Initialize blank grid
         grid = self._initialize_blank_grid()
@@ -43,11 +45,11 @@ class RandomSolver:
         # Main solving loop with random attempts
         return self._solve_with_random_attempts(grid)
 
-    def _initialize_blank_grid(self) -> List[List[int]]:
+    def _initialize_blank_grid(self):
         """Create a blank grid (all zeros)."""
         return [[0 for _ in range(self.size)] for _ in range(self.size)]
 
-    def _apply_initial_constraints(self, grid: List[List[int]]) -> List[List[int]]:
+    def _apply_initial_constraints(self, grid):
         """
         Apply initial mathematical certainties before random attempts.
         Uses overlapping segments and clue sum constraints.
@@ -65,7 +67,7 @@ class RandomSolver:
 
         return grid
 
-    def _apply_line_constraints(self, line: List[int], clues: List[int]) -> List[int]:
+    def _apply_line_constraints(self, line, clues):
         """
         Apply constraints to a single line (row or column).
         Uses clue sums and overlapping segments.
@@ -77,7 +79,7 @@ class RandomSolver:
         # Apply overlapping segments
         return self._apply_overlapping_segments(line, clues)
 
-    def _can_determine_line(self, clues: List[int], length: int) -> bool:
+    def _can_determine_line(self, clues, length):
         """
         Check if a line can be fully determined from clues.
         Formula: (Sum of Clues) + (Number of Clues) - 1 = Length
@@ -88,7 +90,7 @@ class RandomSolver:
         num_clues = len(clues)
         return clue_sum + num_clues - 1 == length
 
-    def _determine_line_from_clues(self, clues: List[int], length: int) -> List[int]:
+    def _determine_line_from_clues(self, clues, length):
         """Determine complete line from clues when possible."""
         if not clues or clues == [0]:
             return [0] * length
@@ -100,22 +102,28 @@ class RandomSolver:
                 line.append(0)
         return line
 
-    def _apply_overlapping_segments(self, line: List[int], clues: List[int]) -> List[int]:
+    def _apply_overlapping_segments(self, line, clues):
         """
         Apply overlapping segments logic.
-        For a clue of size N in a line of size L, the middle (L - N) cells must be filled.
+        For a single clue of size N in a line of size L, the middle cells must be filled.
         """
-        # Implementation for overlapping segments
-        # This is a simplified version - full implementation would be more complex
-        pass  # TODO: Implement overlapping segments logic
+        if len(clues) == 1:
+            clue = clues[0]
+            L = len(line)
+            P = L - clue + 1
+            if P > 1:
+                start = L - clue
+                end = clue - 1
+                for i in range(start, end + 1):
+                    line[i] = 1
         return line
 
-    def _solve_with_random_attempts(self, grid: List[List[int]]) -> Optional[List[List[int]]]:
+    def _solve_with_random_attempts(self, grid):
         """
         Main solving loop using random attempts with constraint checking.
         """
         attempts = 0
-        max_attempts = 1000  # Arbitrary limit
+        max_attempts = 10000  # Increased limit
 
         while attempts < max_attempts and not self._is_timeout():
             # Try to fill remaining cells randomly
@@ -129,7 +137,7 @@ class RandomSolver:
 
         return None  # Could not solve within limits
 
-    def _generate_candidate_solution(self, partial_grid: List[List[int]]) -> List[List[int]]:
+    def _generate_candidate_solution(self, partial_grid):
         """Generate a complete solution from partial grid by filling unknowns randomly."""
         candidate = [row[:] for row in partial_grid]  # Copy
 
@@ -140,7 +148,7 @@ class RandomSolver:
 
         return candidate
 
-    def _validate_solution(self, grid: List[List[int]]) -> bool:
+    def _validate_solution(self, grid):
         """
         Check if a grid satisfies all row and column clues.
         Also check for early contradictions.
@@ -158,7 +166,7 @@ class RandomSolver:
 
         return True
 
-    def _line_matches_clues(self, line: List[int], clues: List[int]) -> bool:
+    def _line_matches_clues(self, line, clues):
         """Check if a line matches its clues."""
         actual_clues = []
         count = 0
@@ -173,13 +181,16 @@ class RandomSolver:
 
         return actual_clues == clues
 
-    def _is_timeout(self) -> bool:
+    def _is_timeout(self):
         """Check if we've exceeded the timeout."""
-        return time.time() - self.start_time > self.timeout
+        if self.start_time is None:
+            return False
+        elapsed = time.time() - self.start_time
+        if elapsed > self.timeout:
+            return True
+        return False
 
-# Utility functions
-def solve_with_random_solver(row_clues: List[List[int]], col_clues: List[List[int]],
-                           timeout: float = 30.0) -> Optional[List[List[int]]]:
+def solve_with_random_solver(row_clues, col_clues, timeout=30.0):
     """
     Convenience function to solve using RandomSolver.
 
@@ -192,5 +203,4 @@ def solve_with_random_solver(row_clues: List[List[int]], col_clues: List[List[in
         Solved grid or None
     """
     solver = RandomSolver(row_clues, col_clues, timeout)
-    return solver.solve()</content>
-#<parameter name="filePath">/workspaces/Parker_Nonograms/src/solver_rand.py
+    return solver.solve()
