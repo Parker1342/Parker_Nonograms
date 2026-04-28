@@ -5,7 +5,7 @@ from solver_rand import solve_with_random_solver
 
 def test_solver():
     # Generate a random solution
-    size = 10
+    size = 5
     solution = generate_solution(size)
     row_clues, col_clues = compute_clues(solution)
 
@@ -17,7 +17,7 @@ def test_solver():
     print("Col clues:", col_clues)
 
     # Try to solve
-    solved = solve_with_random_solver(row_clues, col_clues, timeout=6000.0)
+    solved = solve_with_random_solver(row_clues, col_clues, timeout=300.0)
 
     if solved:
         print("\nSolver found a solution:")

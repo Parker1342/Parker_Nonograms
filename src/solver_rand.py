@@ -1,206 +1,123 @@
-# src/solver_rand.py
-
 import random
-import time
-import sys
-from typing import Optional
+from typing import List, Optional, Tuple
 
-class RandomSolver:
+
+Line = List[int]  # 1 = filled, 0 = empty
+Clues = List[int]
+
+
+def generate_line_candidates(length: int, clues: Clues) -> List[Line]:
     """
-    Solver that uses random generation with constraint-based optimizations.
-    Based on nonogram solving techniques using overlapping segments and line deductions.
+    Generate all valid line patterns for given length and clues.
+    This is deterministic, but you can shuffle results to introduce randomness.
     """
+    if clues == [0]:
+        return [[0] * length]
 
-    def __init__(self, row_clues, col_clues, timeout=30.0):
-        """
-        Initialize the solver with clues and timeout.
+    results = []
 
-        Args:
-            row_clues: List of clue lists for each row
-            col_clues: List of clue lists for each column
-            timeout: Maximum time to spend solving in seconds
-        """
-        self.row_clues = row_clues
-        self.col_clues = col_clues
-        self.size = len(row_clues)
-        self.timeout = timeout
-        self.start_time = None
+    def backtrack(idx: int, clue_idx: int, line: List[int]):
+        if clue_idx == len(clues):
+            # Fill remaining with zeros
+            if idx <= length:
+                results.append(line + [0] * (length - idx))
+            return
 
-    def solve(self):
-        """
-        Attempt to solve the nonogram using random generation with optimizations.
+        block_len = clues[clue_idx]
+        # Try placing block starting at positions >= idx
+        for start in range(idx, length - block_len + 1):
+            new_line = line + [0] * (start - len(line)) + [1] * block_len
+            if start + block_len < length:
+                new_line.append(0)  # mandatory space after block if more clues
+            backtrack(start + block_len + 1, clue_idx + 1, new_line)
 
-        Returns:
-            Solved grid as list of lists, or None if unsolved/timeout
-        """
-        self.start_time = time.time()
-        sys.setrecursionlimit(2000)
+    backtrack(0, 0, [])
+    # Trim any overshoot from spacing logic
+    trimmed = [l[:length] for l in results if len(l) >= length]
+    random.shuffle(trimmed)
+    return trimmed
 
-        # Initialize blank grid
-        grid = self._initialize_blank_grid()
 
-        # Apply initial constraints and deductions
-        grid = self._apply_initial_constraints(grid)
+def check_column_consistency(
+    partial_grid: List[Line],
+    col_clues: List[Clues],
+    max_rows: int,
+) -> bool:
+    """
+    Early contradiction check: ensure that current partial columns
+    do not violate clues (basic check).
+    """
+    rows_filled = len(partial_grid)
+    width = len(partial_grid[0]) if rows_filled > 0 else 0
 
-        # Main solving loop with random attempts
-        return self._solve_with_random_attempts(grid)
+    for c in range(width):
+        col = [partial_grid[r][c] for r in range(rows_filled)]
+        clues = col_clues[c]
 
-    def _initialize_blank_grid(self):
-        """Create a blank grid (all zeros)."""
-        return [[0 for _ in range(self.size)] for _ in range(self.size)]
-
-    def _apply_initial_constraints(self, grid):
-        """
-        Apply initial mathematical certainties before random attempts.
-        Uses overlapping segments and clue sum constraints.
-        """
-        # Apply row constraints
-        for row_idx, clues in enumerate(self.row_clues):
-            grid[row_idx] = self._apply_line_constraints(grid[row_idx], clues)
-
-        # Apply column constraints
-        for col_idx, clues in enumerate(self.col_clues):
-            col = [grid[r][col_idx] for r in range(self.size)]
-            col = self._apply_line_constraints(col, clues)
-            for r in range(self.size):
-                grid[r][col_idx] = col[r]
-
-        return grid
-
-    def _apply_line_constraints(self, line, clues):
-        """
-        Apply constraints to a single line (row or column).
-        Uses clue sums and overlapping segments.
-        """
-        # Check if line can be fully determined
-        if self._can_determine_line(clues, len(line)):
-            return self._determine_line_from_clues(clues, len(line))
-
-        # Apply overlapping segments
-        return self._apply_overlapping_segments(line, clues)
-
-    def _can_determine_line(self, clues, length):
-        """
-        Check if a line can be fully determined from clues.
-        Formula: (Sum of Clues) + (Number of Clues) - 1 = Length
-        """
-        if not clues or clues == [0]:
-            return True  # Empty line
-        clue_sum = sum(clues)
-        num_clues = len(clues)
-        return clue_sum + num_clues - 1 == length
-
-    def _determine_line_from_clues(self, clues, length):
-        """Determine complete line from clues when possible."""
-        if not clues or clues == [0]:
-            return [0] * length
-
-        line = []
-        for i, clue in enumerate(clues):
-            line.extend([1] * clue)
-            if i < len(clues) - 1:
-                line.append(0)
-        return line
-
-    def _apply_overlapping_segments(self, line, clues):
-        """
-        Apply overlapping segments logic.
-        For a single clue of size N in a line of size L, the middle cells must be filled.
-        """
-        if len(clues) == 1:
-            clue = clues[0]
-            L = len(line)
-            P = L - clue + 1
-            if P > 1:
-                start = L - clue
-                end = clue - 1
-                for i in range(start, end + 1):
-                    line[i] = 1
-        return line
-
-    def _solve_with_random_attempts(self, grid):
-        """
-        Main solving loop using random attempts with constraint checking.
-        """
-        attempts = 0
-        max_attempts = 10000  # Increased limit
-
-        while attempts < max_attempts and not self._is_timeout():
-            # Try to fill remaining cells randomly
-            candidate = self._generate_candidate_solution(grid)
-
-            # Check if candidate satisfies all constraints
-            if self._validate_solution(candidate):
-                return candidate
-
-            attempts += 1
-
-        return None  # Could not solve within limits
-
-    def _generate_candidate_solution(self, partial_grid):
-        """Generate a complete solution from partial grid by filling unknowns randomly."""
-        candidate = [row[:] for row in partial_grid]  # Copy
-
-        for r in range(self.size):
-            for c in range(self.size):
-                if candidate[r][c] == 0:  # Unknown cell
-                    candidate[r][c] = 1 if random.random() > 0.5 else 0
-
-        return candidate
-
-    def _validate_solution(self, grid):
-        """
-        Check if a grid satisfies all row and column clues.
-        Also check for early contradictions.
-        """
-        # Validate rows
-        for r in range(self.size):
-            if not self._line_matches_clues(grid[r], self.row_clues[r]):
-                return False
-
-        # Validate columns
-        for c in range(self.size):
-            col = [grid[r][c] for r in range(self.size)]
-            if not self._line_matches_clues(col, self.col_clues[c]):
-                return False
-
-        return True
-
-    def _line_matches_clues(self, line, clues):
-        """Check if a line matches its clues."""
-        actual_clues = []
-        count = 0
-        for cell in line:
-            if cell == 1:
-                count += 1
-            elif count > 0:
-                actual_clues.append(count)
-                count = 0
-        if count > 0:
-            actual_clues.append(count)
-
-        return actual_clues == clues
-
-    def _is_timeout(self):
-        """Check if we've exceeded the timeout."""
-        if self.start_time is None:
+        # Simple check: if we already exceed total filled cells allowed
+        if sum(col) > sum(clues):
             return False
-        elapsed = time.time() - self.start_time
-        if elapsed > self.timeout:
-            return True
-        return False
 
-def solve_with_random_solver(row_clues, col_clues, timeout=30.0):
+        # If we have a completed column, check exact clues
+        if rows_filled == max_rows:
+            # Build full column
+            full_col = col
+            # Convert to clues
+            blocks = []
+            count = 0
+            for v in full_col:
+                if v == 1:
+                    count += 1
+                elif count > 0:
+                    blocks.append(count)
+                    count = 0
+            if count > 0:
+                blocks.append(count)
+            if blocks or clues:
+                if blocks or clues:
+                    if blocks != clues and not (blocks == [] and clues == [0]):
+                        return False
+    return True
+
+
+def solve_nonogram_random(
+    row_clues: List[Clues],
+    col_clues: List[Clues],
+    max_attempts: int = 10000,
+) -> Optional[List[Line]]:
     """
-    Convenience function to solve using RandomSolver.
-
-    Args:
-        row_clues: Row clues
-        col_clues: Column clues
-        timeout: Timeout in seconds
-
-    Returns:
-        Solved grid or None
+    A backtracking solver that uses line candidates and randomization.
     """
-    solver = RandomSolver(row_clues, col_clues, timeout)
-    return solver.solve()
+    height = len(row_clues)
+    width = len(col_clues)
+    row_candidates = [
+        generate_line_candidates(width, rc) for rc in row_clues
+    ]
+
+    # Randomize row order slightly (still solving top-down)
+    order = list(range(height))
+
+    def backtrack(row_idx: int, grid: List[Line]) -> Optional[List[Line]]:
+        if row_idx == height:
+            return grid
+
+        r = order[row_idx]
+        candidates = row_candidates[r]
+        random.shuffle(candidates)
+
+        for cand in candidates:
+            new_grid = grid + [cand]
+            if not check_column_consistency(
+                new_grid, col_clues, max_rows=height
+            ):
+                continue
+            result = backtrack(row_idx + 1, new_grid)
+            if result is not None:
+                return result
+        return None
+
+    for _ in range(max_attempts):
+        result = backtrack(0, [])
+        if result is not None:
+            return result
+    return None

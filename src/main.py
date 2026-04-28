@@ -1,23 +1,21 @@
-# src/main.py
-
 import pygame
-from .config import WINDOW_WIDTH, WINDOW_HEIGHT, FPS
-from .game import Game
+
+from config import DIMENSIONS
+from game import Game
+
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-    pygame.display.set_caption("Nonogram Generator")
-    clock = pygame.time.Clock()
+    screen = pygame.display.set_mode(
+        (DIMENSIONS["window_width"], DIMENSIONS["window_height"])
+    )
+    pygame.display.set_caption("Nonogram")
 
     game = Game(screen)
-
-    while game.running:
-        game.update()
-        game.draw()
-        clock.tick(FPS)
+    game.run()
 
     pygame.quit()
+
 
 if __name__ == "__main__":
     main()

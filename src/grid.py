@@ -1,37 +1,58 @@
-# src/grid.py
+from typing import List, Tuple
 
-from typing import List
+GridData = List[List[int]]  # 1 = filled, 0 = empty
 
-class CellState:
-    EMPTY = 0      # untouched
-    FILLED = 1     # player filled
-    MARKED = 2     # player marked as X
 
 class Grid:
-    def __init__(self, solution: List[List[int]]):
+    def __init__(self, solution: GridData):
         self.solution = solution
-        self.size = len(solution)
-        self.cells = [
-            [CellState.EMPTY for _ in range(self.size)]
-            for _ in range(self.size)
-        ]
+        self.height = len(solution)
+        self.width = len(solution[0]) if self.height > 0 else 0
+
+        # Player grid: 0 = unknown, 1 = filled, -1 = marked (X)
+        self.player = [[0 for _ in range(self.width)] for _ in range(self.height)]
+
+    def in_bounds(self, row: int, col: int) -> bool:
+        return 0 <= row < self.height and 0 <= col < self.width
 
     def toggle_fill(self, row: int, col: int):
-        if self.cells[row][col] == CellState.FILLED:
-            self.cells[row][col] = CellState.EMPTY
+        if not self.in_bounds(row, col):
+            return
+        if self.player[row][col] == 1:
+            self.player[row][col] = 0
         else:
-            self.cells[row][col] = CellState.FILLED
+            self.player[row][col] = 1
+            # Clear mark if present
+            if self.player[row][col] == -1:
+                self.player[row][col] = 1
 
     def toggle_mark(self, row: int, col: int):
-        if self.cells[row][col] == CellState.MARKED:
-            self.cells[row][col] = CellState.EMPTY
+        if not self.in_bounds(row, col):
+            return
+        if self.player[row][col] == -1:
+            self.player[row][col] = 0
         else:
-            self.cells[row][col] = CellState.MARKED
+            self.player[row][col] = -1
+            # Clear fill if present
+            if self.player[row][col] == 1:
+                self.player[row][col] = -1
 
     def is_solved(self) -> bool:
-        for r in range(self.size):
-            for c in range(self.size):
-                if (self.solution[r][c] == 1 and self.cells[r][c] != CellState.FILLED) or \
-                   (self.solution[r][c] == 0 and self.cells[r][c] == CellState.FILLED):
+        for r in range(self.height):
+            for c in range(self.width):
+                if self.player[r][c] == 1 and self.solution[r][c] != 1:
+                    return False
+                if self.solution[r][c] == 1 and self.player[r][c] != 1:
                     return False
         return True
+
+    def get_cell_state(self, row: int, col: int) -> int:
+        """
+        Returns:
+            1  = filled
+            -1 = marked (X)
+            0  = empty/unknown
+        """
+        if not self.in_bounds(row, col):
+            return 0
+        return self.player[row][col]

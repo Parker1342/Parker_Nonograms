@@ -1,20 +1,31 @@
-# src/input_handler.py
-
 import pygame
-from .grid import Grid
+
 
 class InputHandler:
-    def handle_event(self, event: pygame.event.Event, grid: Grid, renderer) -> bool:
-        if event.type == pygame.QUIT:
-            return False
+    def __init__(self):
+        self.left_down = False
+        self.right_down = False
 
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            pos = pygame.mouse.get_pos()
-            cell = renderer.screen_to_cell(pos, grid.size)
-            if cell is not None:
-                r, c = cell
-                if event.button == 1:   # left click
-                    grid.toggle_fill(r, c)
-                elif event.button == 3: # right click
-                    grid.toggle_mark(r, c)
+    def process_events(self, game) -> bool:
+        """
+        Returns False if the user requested to quit, True otherwise.
+        """
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    self.left_down = True
+                    game.handle_click(event.pos, left=True)
+                elif event.button == 3:
+                    self.right_down = True
+                    game.handle_click(event.pos, left=False)
+
+            if event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    self.left_down = False
+                elif event.button == 3:
+                    self.right_down = False
+
         return True

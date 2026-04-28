@@ -1,18 +1,41 @@
-# src/config.py
+import pygame
 
-WINDOW_WIDTH = 800
-WINDOW_HEIGHT = 600
-FPS = 60
+pygame.init()
 
-GRID_SIZE = 10  # 10x10 nonogram for now
-CELL_SIZE = 30
-MARGIN = 10
+# Colors grouped in a dictionary
+COLORS = {
+    "background": (30, 30, 30),
+    "grid": (200, 200, 200),
+    "grid_bold": (255, 255, 255),
+    "filled": (60, 160, 220),
+    "marked": (200, 80, 80),
+    "text": (240, 240, 240),
+    "status": (255, 255, 0),
+}
 
-BACKGROUND_COLOR = (30, 30, 30)
-GRID_LINE_COLOR = (200, 200, 200)
-FILLED_COLOR = (60, 180, 75)
-EMPTY_COLOR = (30, 30, 30)
-MARKED_COLOR = (200, 60, 60)
-TEXT_COLOR = (230, 230, 230)
+# Dimensions grouped in a dictionary
+DIMENSIONS = {
+    "grid_width": 10,
+    "grid_height": 10,
+    "window_width": 800,
+    "window_height": 800,
+}
+
+# Sizings grouped in a dictionary
+SIZINGS = {
+    "cell_size": 32,
+    "line_thickness": 1,
+    "bold_line_thickness": 3,
+    "clue_margin": 10,
+    "clue_panel_size": 150,
+    "status_height": 40,
+}
 
 FONT_NAME = "arial"
+FPS = 60
+
+# Preload fonts
+FONTS = {
+    "clue": pygame.font.SysFont(FONT_NAME, 18),
+    "status": pygame.font.SysFont(FONT_NAME, 22),
+}
