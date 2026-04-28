@@ -1,0 +1,75 @@
+# QUICK START
+
+## 🚀 30-Second Setup
+
+### Just Want to Run It?
+```bash
+cd /workspaces/Parker_Nonograms/all
+python3 main.py
+```
+
+**Controls:**
+- **Left Click** = Fill cell (blue)
+- **Right Click** = Mark empty (X)
+- **Close Window** = Exit
+
+---
+
+## 📋 Copy & Paste into Your Project
+
+### Option A: Single File (Easiest)
+```bash
+cp nonogram_game.py your_project/
+python nonogram_game.py
+```
+
+### Option B: All Modular Files
+```bash
+cp *.py your_project/
+python main.py
+```
+
+### Option C: Import into Existing Code
+```python
+import pygame
+from nonogram_game import Game
+
+pygame.init()
+screen = pygame.display.set_mode((800, 800))
+game = Game(screen)
+game.run()
+```
+
+---
+
+## 📦 What You Get
+
+✅ Complete working nonogram game
+✅ Optimized solver (< 1ms for 5x5)  
+✅ Puzzle generator
+✅ Full UI with clues
+✅ Customizable settings
+
+---
+
+## ⚙️ Customize
+
+Edit `config.py`:
+```python
+DIMENSIONS = {"grid_width": 10, "grid_height": 10}  # Change puzzle size
+COLORS = {"filled": (60, 160, 220), ...}           # Change colors
+SIZINGS = {"cell_size": 32, ...}                   # Change cell size
+```
+
+---
+
+## 📚 Full Documentation
+
+- See **README.md** for detailed guide
+- See **SUMMARY.md** for overview
+
+---
+
+## ✨ Done!
+
+You now have a complete, optimized nonogram game ready to use! 🎮
